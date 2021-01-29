@@ -234,6 +234,241 @@ void onKey(unsigned char tecla, int x, int y)
 		}
 		break;
 	}
+#define PROYECTO "ISGI::S1E09::Adios Mundo"
+#include <sstream>
+#include <iostream> // Biblioteca de entrada salida
+#include <freeglut.h> // Biblioteca grafica
+#include <../Utilidades.h>	
+static GLint ruta;
+float posX, posZ = 0;
+float velocidad = 0;
+float giro = 0;
+int A = 10, T = 100;
+int loopPanel = 1;
+bool primeraVez = true;
+static GLuint carretera, desert, panel1, panel2, panel3,pata;
+GLint anchura = 4;
+GLfloat dir_central[] = { 0,-1,0 };
+bool alambrico,niebla ,nocturno = false;
+int frame = 0;
+
+
+
+// Modo Alambrico o Solido
+
+void loadTexture()
+
+{
+
+	glBindTexture(GL_TEXTURE_2D, desert);
+	loadImageFile((char*)"desert.jpg");
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, desert);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+
+}
+
+void loadBackground()
+// Funcion de carga de la textura actual como fondo de la ventana
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+	glLoadIdentity();
+	glOrtho(-1, 1, -1, 1, -10, 10);
+	glMatrixMode(GL_MODELVIEW);
+	glPushMatrix(); 
+	glLoadIdentity();
+	glPushAttrib(GL_ENABLE_BIT);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_LIGHTING); 
+	glEnable(GL_TEXTURE_2D); 
+	glDisable(GL_TEXTURE_GEN_S);
+	glDisable(GL_TEXTURE_GEN_T);
+	glBegin(GL_POLYGON); 
+	glTexCoord2f(0, 0);
+	glVertex3f(-1, -1, 0);
+	glTexCoord2f(1, 0);
+	glVertex3f(1, -1, 0);
+	glTexCoord2f(1, 1);
+	glVertex3f(1, 1, 0);
+	glTexCoord2f(0, 1);
+	glVertex3f(-1, 1, 0);
+	glEnd();
+	glPopMatrix(); 
+	glPopAttrib();
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix(); 
+	glMatrixMode(GL_MODELVIEW);
+}
+
+void init()
+{
+	cout << "Flecha izquierda / derecha: giro del vehículo" << endl;
+	cout << "Flecha arriba / abajo : aumento / disminución de la velocidad" << endl;
+	cout << "S / s : Activa / desactiva un modelo simple en alámbrico de la práctica 6 sin luces ni texturas" << endl;
+	cout << "L / l : Cambia entre modo diurno / nocturno" << endl;
+	cout << "N / n: Cambia el estado de la niebla (on/off)" << endl;
+
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &carretera);
+	glBindTexture(GL_TEXTURE_2D, carretera);
+	loadImageFile((char*)"road.jpg");
+
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &panel1);
+	glBindTexture(GL_TEXTURE_2D, panel1);
+	loadImageFile((char*)"ari.jpg");
+
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &panel2);
+	glBindTexture(GL_TEXTURE_2D, panel2);
+	loadImageFile((char*)"tt.jpg");
+
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &panel3);
+	glBindTexture(GL_TEXTURE_2D, panel3);
+	loadImageFile((char*)"teaparty.jpg");
+
+
+	glEnable(GL_TEXTURE_2D);
+	glGenTextures(1, &pata);
+	glBindTexture(GL_TEXTURE_2D, pata);
+	loadImageFile((char*)"pata.jpg");
+
+	//glEnable(GL_TEXTURE_2D);
+	//glGenTextures(1, &desert);
+	//glBindTexture(GL_TEXTURE_2D, desert);
+	//loadImageFile((char*)"desert.jpg");
+	GLfloat LunaAmbiental[] = { 0.05,0.05,0.05,1 };
+	GLfloat LunaDifusa[] = { 0.05,0.05,0.05,1 };
+	GLfloat LunaEspecular[] = { 0.00,0.00,0.00,1 };
+
+	GLfloat VehAmbiental[] = { 0.2,0.2,0.2,1 };
+	GLfloat VehDifusa[] = { 1,1,1,1 };
+	GLfloat VehEspecular[] = { 0.3,0.3,0.3,1 };
+
+	GLfloat FarolAmbiental[] = { 0.00,0.00,0.00,1 };
+	GLfloat FarolDifusa[] = { 0.5,0.5,0.2,1 };
+	GLfloat FarolEspecular[] = { 0.00,0.00,0.00,1 };
+
+	glLightfv(GL_LIGHT0, GL_AMBIENT, LunaAmbiental);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, LunaDifusa);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, LunaEspecular);
+
+	glLightfv(GL_LIGHT1, GL_AMBIENT, VehAmbiental);
+	glLightfv(GL_LIGHT1, GL_DIFFUSE, VehDifusa);
+	glLightfv(GL_LIGHT1, GL_SPECULAR, VehEspecular);
+	glLightf(GL_LIGHT1, GL_SPOT_CUTOFF, 25.0);
+	glLightf(GL_LIGHT1, GL_SPOT_EXPONENT, 20.0);
+
+	glLightfv(GL_LIGHT2, GL_AMBIENT, FarolAmbiental);
+	glLightfv(GL_LIGHT2, GL_DIFFUSE, FarolDifusa);
+	glLightfv(GL_LIGHT2, GL_SPECULAR, FarolEspecular);
+	glLightf(GL_LIGHT2, GL_SPOT_CUTOFF, 45.0);
+	glLightf(GL_LIGHT2, GL_SPOT_EXPONENT, 10.0);
+
+	glLightfv(GL_LIGHT3, GL_AMBIENT, FarolAmbiental);
+	glLightfv(GL_LIGHT3, GL_DIFFUSE, FarolDifusa);
+	glLightfv(GL_LIGHT3, GL_SPECULAR, FarolEspecular);
+	glLightf(GL_LIGHT3, GL_SPOT_CUTOFF, 45.0);
+	glLightf(GL_LIGHT3, GL_SPOT_EXPONENT, 10.0);
+
+	glLightfv(GL_LIGHT4, GL_AMBIENT, FarolAmbiental);
+	glLightfv(GL_LIGHT4, GL_DIFFUSE, FarolDifusa);
+	glLightfv(GL_LIGHT4, GL_SPECULAR, FarolEspecular);
+	glLightf(GL_LIGHT4, GL_SPOT_CUTOFF, 45.0);
+	glLightf(GL_LIGHT4, GL_SPOT_EXPONENT, 10.0);
+
+	glLightfv(GL_LIGHT5, GL_AMBIENT, FarolAmbiental);
+	glLightfv(GL_LIGHT5, GL_DIFFUSE, FarolDifusa);
+	glLightfv(GL_LIGHT5, GL_SPECULAR, FarolEspecular);
+	glLightf(GL_LIGHT5, GL_SPOT_CUTOFF, 45.0);
+	glLightf(GL_LIGHT5, GL_SPOT_EXPONENT, 10.0);
+
+}
+
+void onKey(unsigned char tecla, int x, int y)
+// Funcion de atencion al teclado
+{
+	switch (tecla) {
+	case 's':
+	case 'S': {
+		if(alambrico == false){
+			glPushMatrix();
+			glClearColor(0, 0, 0, 1);
+			//glEnable(GL_LIGHTING);
+			glShadeModel(GL_SMOOTH);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glColorMaterial(GL_FRONT, GL_DIFFUSE);
+			glDisable(GL_TEXTURE_2D);
+			glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+			//glDisable(GL_LIGHTING);
+			glDisable(GL_TEXTURE_2D);
+			glPopMatrix();
+			alambrico = true;
+			nocturno = false;
+			niebla = false;
+		}
+		else{
+			glPushMatrix();
+			glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+			glDisable(GL_LIGHTING);
+			glEnable(GL_TEXTURE_2D);
+			glPopMatrix();
+			alambrico = false;
+		}
+
+		break;
+	}
+
+	case 'L': 
+	case 'l': {
+		if (nocturno == false) {
+
+			glPushMatrix();
+			glClearColor(0, 0, 0, 1);
+			glEnable(GL_LIGHTING);
+			glShadeModel(GL_SMOOTH);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glColorMaterial(GL_FRONT, GL_DIFFUSE);
+
+			glPopMatrix();
+			nocturno = true;
+			alambrico = false;
+			niebla = false;
+		}
+		else {
+			glDisable(GL_LIGHTING);
+			nocturno = false;
+		}
+		break;
+	}
+	case 'N':
+	case 'n': {
+		if (niebla == false) {
+
+			glPushMatrix();
+			glEnable(GL_FOG);
+			static GLfloat cniebla[] = { 1,1,1,1 };
+			glFogfv(GL_FOG_COLOR,cniebla);
+			glFogf(GL_FOG_DENSITY,0.3);
+			glPopMatrix();
+			niebla = true;
+			alambrico = false;
+			nocturno = false;
+		}
+		else {
+			glDisable(GL_FOG);
+			niebla = false;
+		}
+		break;
+	}
 
 	case 27: //esc
 		exit(0);
@@ -261,6 +496,7 @@ void display()
 
 	bool primer_light1 = false;
 	bool primer_light2 = false;
+	bool primer_light3 = false;
 
 
 	if (nocturno == true) {
@@ -268,8 +504,8 @@ void display()
 		glEnable(GL_LIGHT0);
 		glEnable(GL_LIGHT1);
 		glEnable(GL_LIGHT2);
-		//glEnable(GL_LIGHT3);
-		//glEnable(GL_LIGHT4);
+		glEnable(GL_LIGHT3);
+		glEnable(GL_LIGHT4);
 		//glEnable(GL_LIGHT5);
 
 		GLfloat dir_apunta[] = { 0,-1,0 };
@@ -567,18 +803,25 @@ void display()
 
 			//Luces
 
-			v0[1] = { 20 }; // xz
-			v1[1] = { 20 }; // xy
-			v3[1] = { 20 }; // sz
-			v2[1] = { 20 }; // sy
+			if (primer_light3 == false) {
+				//cout << frame;
+				//quadtex(v0, v1, v3, v2, 0, 1, 0, 1, 10, 5);
+				v0[1] = { 20 };
+				v1[1] = { 20 }; // xz
+				v2[1] = { 20 }; // xz
+				v3[1] = { 20 }; // xz
 
-			glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, dir_central);
+				//Pos_light1[0] = v3[0];
+				//Pos_light1[1] = v3[1];
+				//Pos_light1[2] = v3[2];
+				glLightfv(GL_LIGHT4, GL_SPOT_DIRECTION, dir_central);
+				glLightfv(GL_LIGHT4, GL_POSITION, v0);
+				glLightfv(GL_LIGHT4, GL_POSITION, v1);
+				glLightfv(GL_LIGHT4, GL_POSITION, v2);
+				glLightfv(GL_LIGHT4, GL_POSITION, v3);
+				primer_light3 = true;
+			}
 
-
-			glLightfv(GL_LIGHT4, GL_POSITION, v1);
-			glLightfv(GL_LIGHT4, GL_POSITION, v2);
-			glLightfv(GL_LIGHT4, GL_POSITION, v0);
-			glLightfv(GL_LIGHT4, GL_POSITION, v3);
 
 
 
@@ -646,7 +889,7 @@ void onIdle() {
 		title << "Modo bajo visibilidad. Velocidad: " << velocidad;
 	}
 	else {
-		title << "Proyecto conducci¨®n. Velocidad: " << velocidad;
+		title << "Proyecto conducción. Velocidad: " << velocidad;
 	}
 	glutSetWindowTitle(title.str().c_str());
 
