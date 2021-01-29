@@ -72,9 +72,9 @@ void loadBackground()
 
 void init()
 {
-	cout << "Flecha izquierda / derecha: giro del veh¨ªculo" << endl;
-	cout << "Flecha arriba / abajo : aumento / disminuci¨®n de la velocidad" << endl;
-	cout << "S / s : Activa / desactiva un modelo simple en al¨¢mbrico de la pr¨¢ctica 6 sin luces ni texturas" << endl;
+	cout << "Flecha izquierda / derecha: giro del vehÂ¨Âªculo" << endl;
+	cout << "Flecha arriba / abajo : aumento / disminuciÂ¨Â®n de la velocidad" << endl;
+	cout << "S / s : Activa / desactiva un modelo simple en alÂ¨Â¢mbrico de la prÂ¨Â¢ctica 6 sin luces ni texturas" << endl;
 	cout << "L / l : Cambia entre modo diurno / nocturno" << endl;
 	cout << "N / n: Cambia el estado de la niebla (on/off)" << endl;
 
@@ -646,7 +646,7 @@ void onIdle() {
 		title << "Modo bajo visibilidad. Velocidad: " << velocidad;
 	}
 	else {
-		title << "Proyecto conducci¨®n. Velocidad: " << velocidad;
+		title << "Proyecto conducciÂ¨Â®n. Velocidad: " << velocidad;
 	}
 	glutSetWindowTitle(title.str().c_str());
 
