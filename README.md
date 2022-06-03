@@ -1,4 +1,4 @@
-C and OpenGL
+C++ and OpenGL
 <br>
 Incompleta <br>
 Incompleta <br>
